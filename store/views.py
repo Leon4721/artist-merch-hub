@@ -15,7 +15,7 @@ def product_detail(request, product_id):
     if product.is_premium:
         if not request.user.is_authenticated:
             messages.info(request, "Please log in to view premium items.")
-            return redirect("/")  # we'll change to login page after auth is wired
+            return redirect("login")
 
         # user is logged in, check paid status
         if not hasattr(request.user, "profile") or not request.user.profile.has_paid:

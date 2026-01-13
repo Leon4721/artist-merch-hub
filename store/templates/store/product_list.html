@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Store{% endblock %}
+
+{% block content %}
+<h1>Store</h1>
+
+{% if products %}
+    <ul>
+        {% for product in products %}
+            <li>
+                <h3>
+                    <a href="{% url 'product_detail' product.id %}">
+                        {{ product.title }}
+                    </a>
+                </h3>
+                <p>{{ product.description }}</p>
+                <p>£{{ product.price }}</p>
+                <p>Type: {{ product.product_type }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No products available.</p>
+{% endif %}
+
+{% endblock %}

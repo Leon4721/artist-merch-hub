@@ -11,6 +11,14 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def checkout(request):
+    """
+    Create a Stripe Checkout Session (one-time payment).
+    """
+
+    if request.user.profile.has_paid:
+        messages.info(request, "You already have premium access.")
+        return redirect("product_list")
+
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -25,23 +33,14 @@ def checkout(request):
                     "quantity": 1,
                 }
             ],
-            success_url=settings.STRIPE_SUCCESS_URL + "?session_id={CHECKOUT_SESSION_ID}",
+            success_url=settings.STRIPE_SUCCESS_URL,
             cancel_url=settings.STRIPE_CANCEL_URL,
         )
-
-        Order.objects.create(
-            user=request.user,
-            stripe_session_id=session.id,
-            amount=999,
-            currency="gbp",
-            status="created",
-        )
-
         return redirect(session.url)
-
     except Exception as e:
         messages.error(request, f"Stripe error: {e}")
         return redirect("home")
+
 
 
 @login_required

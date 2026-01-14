@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Premium Library{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Premium Library</h1>
+
+{% if products %}
+  <div class="row g-3">
+    {% for product in products %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h3 class="h5">
+              <a href="{% url 'product_detail' product.id %}" class="text-decoration-none">
+                {{ product.title }}
+              </a>
+            </h3>
+            <p class="text-muted small">{{ product.description }}</p>
+            <div class="fw-semibold">£{{ product.price }}</div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No premium products yet.</p>
+{% endif %}
+{% endblock %}

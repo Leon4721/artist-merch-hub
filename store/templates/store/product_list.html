@@ -1,35 +1,51 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Store{% endblock %}
 
 {% block content %}
-<h1>Store</h1>
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h3 mb-0">Store</h1>
+
+  <form class="d-flex gap-2" method="get">
+    <input id="productSearch" name="q" value="{{ q }}" class="form-control" placeholder="Search products...">
+    <button class="btn btn-outline-dark" type="submit">Search</button>
+  </form>
+</div>
 
 {% if products %}
-    <ul>
-        {% for product in products %}
-           <li>
-  <h3>
-    <a href="{% url 'product_detail' product.id %}">{{ product.title }}</a>
-  </h3>
+  <div id="productGrid" class="row g-3">
+    {% for product in products %}
+      <div class="col-md-6 col-lg-4 product-card" data-title="{{ product.title|lower }}" data-desc="{{ product.description|lower }}">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <h3 class="h5">
+                <a href="{% url 'product_detail' product.id %}" class="text-decoration-none">
+                  {{ product.title }}
+                </a>
+              </h3>
 
-  {% if product.is_premium %}
-      {% if has_paid %}
-          <p><strong>Premium Unlocked ✅</strong></p>
-      {% else %}
-          <p><strong>Premium Locked 🔒</strong></p>
-      {% endif %}
-  {% endif %}
+              {% if product.is_premium %}
+                <span class="badge bg-warning text-dark">Premium</span>
+              {% else %}
+                <span class="badge bg-secondary">Free</span>
+              {% endif %}
+            </div>
 
-  <p>{{ product.description }}</p>
-  <p>£{{ product.price }}</p>
-  <p>Type: {{ product.product_type }}</p>
-</li>
-
-        {% endfor %}
-    </ul>
+            <p class="text-muted small">{{ product.description|default:"No description" }}</p>
+            <div class="fw-semibold">£{{ product.price }}</div>
+            <div class="text-muted small">Type: {{ product.product_type }}</div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 {% else %}
-    <p>No products available.</p>
+  <p>No products available.</p>
 {% endif %}
+{% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/store.js' %}"></script>
 {% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Review{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">{% if mode == "edit" %}Edit{% else %}Add{% endif %} Review: {{ product.title }}</h1>
+
+<form method="post" class="card shadow-sm">
+  <div class="card-body">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-dark" type="submit">Save</button>
+    <a class="btn btn-outline-dark ms-2" href="{% url 'product_detail' product.id %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

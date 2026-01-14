@@ -3,9 +3,12 @@
 {% block title %}Locked{% endblock %}
 
 {% block content %}
-<h1>Locked: {{ product.title }}</h1>
-
-<p>This is premium content. You need to unlock access to view it.</p>
-
-<a href="/">Go Home</a>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4">Locked: {{ product.title }}</h1>
+    <p class="mb-3">This is premium content. You need to unlock access to view it.</p>
+    <a class="btn btn-warning" href="/checkout/">Unlock Access</a>
+    <a class="btn btn-outline-dark ms-2" href="/store/">Back to Store</a>
+  </div>
+</div>
 {% endblock %}

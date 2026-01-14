@@ -37,8 +37,10 @@ def checkout(request):
 
 @login_required
 def checkout_success(request):
-    request.user.profile.has_paid = True
-    request.user.profile.save()
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    profile.has_paid = True
+    profile.save()
+
     messages.success(request, "Payment successful! Premium access unlocked.")
     return redirect("product_list")
 

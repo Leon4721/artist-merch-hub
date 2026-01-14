@@ -8,16 +8,24 @@
 {% if products %}
     <ul>
         {% for product in products %}
-            <li>
-                <h3>
-                    <a href="{% url 'product_detail' product.id %}">
-                        {{ product.title }}
-                    </a>
-                </h3>
-                <p>{{ product.description }}</p>
-                <p>£{{ product.price }}</p>
-                <p>Type: {{ product.product_type }}</p>
-            </li>
+           <li>
+  <h3>
+    <a href="{% url 'product_detail' product.id %}">{{ product.title }}</a>
+  </h3>
+
+  {% if product.is_premium %}
+      {% if has_paid %}
+          <p><strong>Premium Unlocked ✅</strong></p>
+      {% else %}
+          <p><strong>Premium Locked 🔒</strong></p>
+      {% endif %}
+  {% endif %}
+
+  <p>{{ product.description }}</p>
+  <p>£{{ product.price }}</p>
+  <p>Type: {{ product.product_type }}</p>
+</li>
+
         {% endfor %}
     </ul>
 {% else %}

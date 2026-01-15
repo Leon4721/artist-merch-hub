@@ -27,9 +27,8 @@ def product_detail(request, product_id: int):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         has_paid = profile.has_paid
 
-    # Protect premium items
+
     if product.is_premium and not has_paid:
-        # Use the working template inside the store app
         return render(request, "store/product_locked.html", {"product": product})
 
     user_review = None
@@ -53,6 +52,8 @@ def review_add(request, product_id: int):
     product = get_object_or_404(Product, pk=product_id)
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+
     if product.is_premium and not profile.has_paid:
         messages.error(request, "That item is premium. Please unlock access first.")
         return redirect("checkout")

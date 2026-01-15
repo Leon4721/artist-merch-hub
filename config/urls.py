@@ -7,7 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
 
-    # Store only lives at /store/
+
     path("store/", include(("store.urls", "store"), namespace="store")),
 
     path("accounts/", include(("accounts.urls", "accounts"), namespace="accounts")),

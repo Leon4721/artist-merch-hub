@@ -2,19 +2,22 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 
 def signup(request):
-    # ✅ FIX: Redirect logged-in users
+    # Redirect if already logged in
     if request.user.is_authenticated:
         return redirect("home")
-    
+
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             messages.success(request, "Account created! Please log in.")
-            return redirect("login")
+            return redirect("accounts:login")  # use namespace if defined
+        else:
+            messages.error(request, "There was an error in your signup.")
     else:
         form = UserCreationForm()
 
@@ -22,10 +25,10 @@ def signup(request):
 
 
 def login_view(request):
-    # ✅ FIX: Redirect logged-in users
+    # Redirect if already logged in
     if request.user.is_authenticated:
         return redirect("home")
-    
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -43,5 +46,5 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    messages.info(request, "Logged out.")
+    messages.info(request, "You have been logged out.")
     return redirect("home")

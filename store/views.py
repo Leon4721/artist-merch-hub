@@ -110,3 +110,7 @@ def premium_library(request):
 
     premium_products = Product.objects.filter(is_premium=True).order_by("-created_at")
     return render(request, "store/premium_library.html", {"products": premium_products})
+from django.shortcuts import render
+
+def home(request):
+    return render(request, "home.html")

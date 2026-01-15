@@ -1,6 +1,6 @@
 from decimal import Decimal
-
 import stripe
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from accounts.models import UserProfile
 from .models import Order
 
-# ✅ ALWAYS use environment variable (Render dashboard)
+# ✅ Always use environment variable for safety
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
@@ -22,14 +22,8 @@ def checkout(request):
         return redirect("store:product_list")
 
     try:
-        success_url = (
-            request.build_absolute_uri("/checkout/success/")
-            + "?session_id={CHECKOUT_SESSION_ID}"
-        )
-        cancel_url = (
-            request.build_absolute_uri("/checkout/cancel/")
-            + "?session_id={CHECKOUT_SESSION_ID}"
-        )
+        success_url = request.build_absolute_uri("/checkout/success/") + "?session_id={CHECKOUT_SESSION_ID}"
+        cancel_url = request.build_absolute_uri("/checkout/cancel/") + "?session_id={CHECKOUT_SESSION_ID}"
 
         session = stripe.checkout.Session.create(
             mode="payment",
@@ -39,9 +33,9 @@ def checkout(request):
                     "price_data": {
                         "currency": "gbp",
                         "product_data": {
-                            "name": "Premium Access Pass"
+                            "name": "Premium Access Pass",
                         },
-                        "unit_amount": 999,  # £9.99
+                        "unit_amount": 999,  # £9.99 in pence
                     },
                     "quantity": 1,
                 }
@@ -51,7 +45,6 @@ def checkout(request):
             cancel_url=cancel_url,
         )
 
-        # ✅ Create pending order
         Order.objects.create(
             user=request.user,
             stripe_session_id=session.id,
@@ -70,7 +63,6 @@ def checkout(request):
 @login_required
 def checkout_success(request):
     session_id = request.GET.get("session_id")
-
     if not session_id:
         messages.error(request, "Missing Stripe session.")
         return redirect("store:product_list")
@@ -94,9 +86,7 @@ def checkout_success(request):
         profile.has_paid = True
         profile.save()
 
-        messages.success(
-            request, "Payment successful! Premium access unlocked."
-        )
+        messages.success(request, "Payment successful! Premium access unlocked.")
         return redirect("store:premium_library")
 
     except Order.DoesNotExist:

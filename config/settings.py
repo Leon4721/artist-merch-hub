@@ -115,3 +115,21 @@ STRIPE_CANCEL_URL = os.getenv('STRIPE_CANCEL_URL', 'http://127.0.0.1:8000/checko
 # Raise error if SECRET_KEY missing in production
 if SECRET_KEY == "django-insecure-placeholder" and not DEBUG:
     raise ValueError("SECRET_KEY must be set in production!")
+
+import sys
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

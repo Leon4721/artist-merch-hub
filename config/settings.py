@@ -1,24 +1,25 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-# Load environment variables from .env
+# Load .env variables
 load_dotenv()
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Secret key
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-placeholder")
 
-# Debug
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Allowed hosts
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-# Installed apps
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -27,13 +28,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Your apps
+    # Custom apps
     'store',
     'checkout',
     'accounts',
 ]
 
-# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -44,10 +44,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Root URL
 ROOT_URLCONF = 'config.urls'
 
-# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -59,7 +57,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'accounts.context_processors.premium_status',  # custom context processor
+                'accounts.context_processors.premium_status',  # Custom context
             ],
         },
     },
@@ -67,11 +65,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database
+# ✅ DATABASE (uses Supabase or fallback to SQLite)
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
+        conn_max_age=600,
     )
 }
 
@@ -89,7 +87,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -101,23 +99,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Login redirects
+# Auth redirects
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'store:product_list'
 LOGOUT_REDIRECT_URL = 'store:product_list'
 
-# Stripe settings
-STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', '')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
-STRIPE_SUCCESS_URL = os.getenv('STRIPE_SUCCESS_URL', 'http://127.0.0.1:8000/checkout/success/')
-STRIPE_CANCEL_URL = os.getenv('STRIPE_CANCEL_URL', 'http://127.0.0.1:8000/checkout/cancel/')
+# ✅ Stripe config
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", "")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL", "http://127.0.0.1:8000/checkout/success/")
+STRIPE_CANCEL_URL = os.getenv("STRIPE_CANCEL_URL", "http://127.0.0.1:8000/checkout/cancel/")
 
-# Raise error if SECRET_KEY missing in production
-if SECRET_KEY == "django-insecure-placeholder" and not DEBUG:
-    raise ValueError("SECRET_KEY must be set in production!")
-
-import sys
-
+# ✅ Logging to console
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -133,3 +126,7 @@ LOGGING = {
         'level': 'DEBUG',
     },
 }
+
+# ✅ Enforce secret key in production
+if SECRET_KEY == "django-insecure-placeholder" and not DEBUG:
+    raise ValueError("SECRET_KEY must be set in production!")

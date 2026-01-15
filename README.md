@@ -1,6 +1,8 @@
 # Artist Merch Hub
 
-Django e-commerce platform for artists to sell music and merchandise.
+a Django e-commerce platform for artists to sell music and merchandise directly to their fan base, allow thier fans to build up their own communities.  based of discord and reddit for the Undergound culture. 
+
+**Live Site:** [https://artist-merch-hub.onrender.com/store/](https://artist-merch-hub.onrender.com/store/)
 
 ## Purpose
 

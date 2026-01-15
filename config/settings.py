@@ -8,18 +8,18 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# --- Core security ---
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-
+# Render external hostname support
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-
+# CSRF trusted origins (comma-separated env var)
 CSRF_TRUSTED_ORIGINS = []
 csrf_env = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
 if csrf_env:
@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
+    # Apps
     "store",
     "checkout",
     "accounts",
@@ -40,7 +40,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -64,7 +63,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            
+                # Premium status helper
                 "accounts.context_processors.premium_status",
             ],
         },
@@ -73,8 +72,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
+# --- Database ---
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
@@ -103,9 +103,15 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-
+# --- Static / Media ---
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# ✅ Safe on Render even if /static folder is missing
+STATICFILES_DIRS = []
+STATIC_DIR = BASE_DIR / "static"
+if STATIC_DIR.exists():
+    STATICFILES_DIRS.append(STATIC_DIR)
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
@@ -114,40 +120,28 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
+# --- Auth redirects ---
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "store:product_list"
 LOGOUT_REDIRECT_URL = "store:product_list"
 
-
+# --- Stripe ---
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", "")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 
+# ✅ Use SITE_URL so production isn't stuck on localhost
+SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+
 STRIPE_SUCCESS_URL = os.getenv(
     "STRIPE_SUCCESS_URL",
-    "http://127.0.0.1:8000/checkout/success/"
+    f"{SITE_URL}/checkout/success/"
 )
 STRIPE_CANCEL_URL = os.getenv(
     "STRIPE_CANCEL_URL",
-    "http://127.0.0.1:8000/checkout/cancel/"
+    f"{SITE_URL}/checkout/cancel/"
 )
 
-
+# --- Production hardening ---
 if not DEBUG:
-
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-
-    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
-
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_REFERRER_POLICY = "same-origin"
-    X_FRAME_OPTIONS = "DENY"
-
-
-if not DEBUG and SECRET_KEY == "django-insecure-placeholder":
-    raise ValueError("SECRET_KEY must be set in production!")
+    SECURE_SSL_REDIRECT = Tr

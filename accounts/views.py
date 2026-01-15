@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -8,11 +5,15 @@ from django.shortcuts import redirect, render
 
 
 def signup(request):
+    # ✅ FIX: Redirect logged-in users
+    if request.user.is_authenticated:
+        return redirect("home")
+    
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, "Account created. You can now log in.")
+            messages.success(request, "Account created! Please log in.")
             return redirect("login")
     else:
         form = UserCreationForm()
@@ -21,15 +22,19 @@ def signup(request):
 
 
 def login_view(request):
+    # ✅ FIX: Redirect logged-in users
+    if request.user.is_authenticated:
+        return redirect("home")
+    
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, "Logged in successfully.")
+            messages.success(request, f"Welcome, {user.username}!")
             return redirect("home")
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, "Invalid credentials.")
     else:
         form = AuthenticationForm()
 
@@ -38,5 +43,5 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    messages.info(request, "You have been logged out.")
+    messages.info(request, "Logged out.")
     return redirect("home")

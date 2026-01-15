@@ -144,4 +144,4 @@ STRIPE_CANCEL_URL = os.getenv(
 # --- Production hardening ---
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = Tr
+    SECURE_SSL_REDIRECT = True

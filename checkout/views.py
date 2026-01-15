@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from accounts.models import UserProfile
 from .models import Order
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = "sk_test_your_real_key_here"
 
 
 @login_required

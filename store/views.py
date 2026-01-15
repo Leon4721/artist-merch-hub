@@ -1,3 +1,4 @@
+# store/views.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -10,8 +11,8 @@ from .models import Product, Review
 
 def product_list(request):
     q = (request.GET.get("q") or "").strip()
-
     products = Product.objects.all().order_by("-created_at")
+
     if q:
         products = products.filter(Q(title__icontains=q) | Q(description__icontains=q))
 
@@ -28,13 +29,12 @@ def product_detail(request, product_id: int):
 
     # Protect premium items
     if product.is_premium and not has_paid:
-        return render(request, "store/locked.html", {"product": product})
+        # Use the working template inside the store app
+        return render(request, "store/product_locked.html", {"product": product})
 
     user_review = None
     if request.user.is_authenticated:
         user_review = Review.objects.filter(product=product, user=request.user).first()
-
-    review_form = ReviewForm()
 
     return render(
         request,
@@ -43,7 +43,7 @@ def product_detail(request, product_id: int):
             "product": product,
             "reviews": product.reviews.select_related("user").all(),
             "user_review": user_review,
-            "review_form": review_form,
+            "review_form": ReviewForm(),
         },
     )
 
@@ -52,7 +52,6 @@ def product_detail(request, product_id: int):
 def review_add(request, product_id: int):
     product = get_object_or_404(Product, pk=product_id)
 
-    # Premium protection
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if product.is_premium and not profile.has_paid:
         messages.error(request, "That item is premium. Please unlock access first.")
@@ -60,7 +59,7 @@ def review_add(request, product_id: int):
 
     if Review.objects.filter(product=product, user=request.user).exists():
         messages.info(request, "You already reviewed this product. You can edit your review.")
-        return redirect("review_edit", product_id=product.id)
+        return redirect("store:review_edit", product_id=product.id)
 
     form = ReviewForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -69,7 +68,7 @@ def review_add(request, product_id: int):
         review.user = request.user
         review.save()
         messages.success(request, "Review posted.")
-        return redirect("product_detail", product_id=product.id)
+        return redirect("store:product_detail", product_id=product.id)
 
     return render(request, "store/review_form.html", {"form": form, "product": product, "mode": "add"})
 
@@ -83,7 +82,7 @@ def review_edit(request, product_id: int):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Review updated.")
-        return redirect("product_detail", product_id=product.id)
+        return redirect("store:product_detail", product_id=product.id)
 
     return render(request, "store/review_form.html", {"form": form, "product": product, "mode": "edit"})
 
@@ -96,7 +95,7 @@ def review_delete(request, product_id: int):
     if request.method == "POST":
         review.delete()
         messages.success(request, "Review deleted.")
-        return redirect("product_detail", product_id=product.id)
+        return redirect("store:product_detail", product_id=product.id)
 
     return render(request, "store/review_delete_confirm.html", {"product": product})
 
@@ -110,7 +109,3 @@ def premium_library(request):
 
     premium_products = Product.objects.filter(is_premium=True).order_by("-created_at")
     return render(request, "store/premium_library.html", {"products": premium_products})
-from django.shortcuts import render
-
-def home(request):
-    return render(request, "home.html")

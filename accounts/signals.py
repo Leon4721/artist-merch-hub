@@ -8,6 +8,13 @@ User = get_user_model()
 
 
 @receiver(post_save, sender=User)
-def ensure_profile_exists(sender, instance, **kwargs):
-    # Always guarantee a profile exists (prevents RelatedObjectDoesNotExist)
-    UserProfile.objects.get_or_create(user=instance)
+def ensure_profile_exists(sender, instance, created, **kwargs):
+    """
+    Ensures every user always has a profile.
+    - On signup: create it
+    - On any later save/login: make sure it still exists
+    """
+    if created:
+        UserProfile.objects.create(user=instance)
+    else:
+        UserProfile.objects.get_or_create(user=instance)

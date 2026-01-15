@@ -9,7 +9,8 @@ from django.shortcuts import redirect
 from accounts.models import UserProfile
 from .models import Order
 
-stripe.api_key = "sk_test_your_real_key_here"
+# ✅ ALWAYS use environment variable (Render dashboard)
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 @login_required
@@ -18,11 +19,17 @@ def checkout(request):
 
     if profile.has_paid:
         messages.info(request, "You already have premium access.")
-        return redirect("product_list")
+        return redirect("store:product_list")
 
     try:
-        success_url = request.build_absolute_uri("/checkout/success/") + "?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url = request.build_absolute_uri("/checkout/cancel/") + "?session_id={CHECKOUT_SESSION_ID}"
+        success_url = (
+            request.build_absolute_uri("/checkout/success/")
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        )
+        cancel_url = (
+            request.build_absolute_uri("/checkout/cancel/")
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        )
 
         session = stripe.checkout.Session.create(
             mode="payment",
@@ -31,8 +38,10 @@ def checkout(request):
                 {
                     "price_data": {
                         "currency": "gbp",
-                        "product_data": {"name": "Premium Access Pass"},
-                        "unit_amount": 999,  # £9.99 in pence
+                        "product_data": {
+                            "name": "Premium Access Pass"
+                        },
+                        "unit_amount": 999,  # £9.99
                     },
                     "quantity": 1,
                 }
@@ -42,7 +51,7 @@ def checkout(request):
             cancel_url=cancel_url,
         )
 
-        # Create pending order tied to this exact session id
+        # ✅ Create pending order
         Order.objects.create(
             user=request.user,
             stripe_session_id=session.id,
@@ -55,25 +64,29 @@ def checkout(request):
 
     except Exception as e:
         messages.error(request, f"Stripe error: {e}")
-        return redirect("product_list")
+        return redirect("store:product_list")
 
 
 @login_required
 def checkout_success(request):
     session_id = request.GET.get("session_id")
+
     if not session_id:
-        messages.error(request, "Missing Stripe session. Please try again.")
-        return redirect("product_list")
+        messages.error(request, "Missing Stripe session.")
+        return redirect("store:product_list")
 
     try:
         session = stripe.checkout.Session.retrieve(session_id)
 
         if session.payment_status != "paid":
             messages.error(request, "Payment not completed.")
-            return redirect("product_list")
+            return redirect("store:product_list")
 
-        # Must match a real pending order for THIS user
-        order = Order.objects.get(stripe_session_id=session_id, user=request.user)
+        order = Order.objects.get(
+            stripe_session_id=session_id,
+            user=request.user,
+            status="pending",
+        )
         order.status = "paid"
         order.save()
 
@@ -81,16 +94,18 @@ def checkout_success(request):
         profile.has_paid = True
         profile.save()
 
-        messages.success(request, "Payment successful! Premium access unlocked.")
-        return redirect("premium_library")
+        messages.success(
+            request, "Payment successful! Premium access unlocked."
+        )
+        return redirect("store:premium_library")
 
     except Order.DoesNotExist:
-        messages.error(request, "Order not found for this session.")
-        return redirect("product_list")
+        messages.error(request, "Order not found.")
+        return redirect("store:product_list")
 
     except Exception as e:
         messages.error(request, f"Stripe error: {e}")
-        return redirect("product_list")
+        return redirect("store:product_list")
 
 
 @login_required
@@ -98,7 +113,11 @@ def checkout_cancel(request):
     session_id = request.GET.get("session_id")
 
     if session_id:
-        Order.objects.filter(stripe_session_id=session_id, user=request.user, status="pending").update(status="cancelled")
+        Order.objects.filter(
+            stripe_session_id=session_id,
+            user=request.user,
+            status="pending",
+        ).update(status="cancelled")
 
     messages.info(request, "Payment cancelled.")
-    return redirect("product_list")
+    return redirect("store:product_list")
